@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Importados Brasil V1.0A | Teste de lógica - Dólar</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            width: 100%;
+            height: 100%;
+
+            display: flex;
+            justify-content: center;
+
+            font-family: "Lexend Deca", serif;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input {
+            width: 200px;
+            height: 30px;
+
+            font-size: 20px;
+
+            border: solid 0.5px gray;
+            border-radius: 10px;
+
+            padding-left: 10px;
+        }
+
+        button {
+            width: 100px;
+            height: 30px;
+
+            background-color: white;
+
+            font-size: 20px;
+
+            border: solid 1px gray;
+            border-radius: 10px;
+
+            transition: 0.2s;
+        }
+
+        button:hover {
+            scale: 1.05;
+        }
+
+        button:active {
+            background-color: black;
+            color: white;
+        }
+
+        .regiao {
+            border: none;
+
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h1>Insira um valor em dólar para ser convertido</h2><br>
+
+            <input type="number" id="valor"><br>
+
+            <button onclick="dolar()">confirmar</button><br><br>
+
+            <p>valor inserido</p><br>
+            <p id="valorInserido"></p><br>
+
+            <p>valor em Reais</p><br>
+            <p id="valorReal"></p>
+
+            <h1>Insira um cep para o cálculo do CEP</h1><br>
+
+            <input type="number" id="cep"><br>
+
+            <button onclick="CalculoFrete()">confirmar</button><br><br>
+
+            <p>Sua região:</p><br>
+            <input id="regiao2" class="regiao" readonly></input><br>
+
+            <p>valor a ser cobrado</p><br>
+            <p id="valorRegiao"></p><br>
+
+            <p>valor com frete</p><br>
+            <p id="total"></p>
+    </main>
+
+    <script>
+        function dolar() {
+            fetch('https://economia.awesomeapi.com.br/last/USD-BRL').then(resposta => {
+                return resposta.json()
+            }).then(economia => {
+
+                var valorReais = document.getElementById('valor').value * economia.USDBRL.bid
+
+
+                document.getElementById('valorInserido').innerHTML = document.getElementById('valor').value
+
+                document.getElementById('valorReal').innerHTML = valorReais.toFixed(2)
+
+            })
+        }
+
+
+        function CalculoFrete() {
+            fetch('https://raw.githubusercontent.com/igorbraga890/Importados-Brasil---Regi-es/refs/heads/main/regioes.json').then(resposta => resposta.json(
+            )).then(corpo => {
+                for (i = 0; i <= corpo.regioes.length; i++) {
+                    if (document.getElementById('regiao2').value == corpo.regioes[i].regiao) {
+                        document.getElementById('valorRegiao').innerHTML = corpo.regioes[i].frete
+
+                        var valortotal = parseFloat(document.getElementById('valorRegiao').innerHTML) + parseFloat(document.getElementById('valorReal').innerHTML)
+
+                        document.getElementById('total').innerHTML = valortotal
+                    }
+
+                }
+            })
+        }
+
+        const preencherFormulario = (endereco) => {
+            document.getElementById('regiao2').value = endereco.regiao
+
+        }
+
+        //autopreenchimento
+        const cepValido = (cep) => {
+            if (cep.length == 8) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        //buscar a API
+        const pesquisarCep = async () => {
+            const cep = document.getElementById('cep').value
+            const url = `https://viacep.com.br/ws/${cep}/json/`
+            if (cepValido(cep)) {
+                const dados = await fetch(url);
+                const endereco = await dados.json();
+                preencherFormulario(endereco)
+            }
+        }
+        document.getElementById('cep').addEventListener("focusout", pesquisarCep)
+
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@100..900&display=swap" rel="stylesheet">
+</body>
+
+</html>
